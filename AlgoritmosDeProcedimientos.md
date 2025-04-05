@@ -69,7 +69,6 @@ Cantidad_Consumida, idCitaServicio
 
 fin agendarCita
 
-
 ## Seudoalgoritmo mejorado
 
 agendarCita(peticion)
@@ -143,3 +142,36 @@ agendarCita(peticion)
     confirmar transacción
     devolver { exito: true, mensaje: "Cita agendada exitosamente", id_cita: ID_Cita }
 fin agendarCita
+
+---
+
+registrarCliente(peticion)
+
+    iniciar transacción
+
+    -- Validar cédula o documento de identidad
+    si existeCedula(peticion.didentidad_cliente)
+        devolver { exito: false, mensaje: "La cédula o documento de identidad ya está registrada" }
+        cancelar transacción
+        fin registrarCliente
+
+    -- Validar correo electrónico
+    si existeCorreo(peticion.email)
+        devolver { exito: false, mensaje: "El correo electrónico ya está registrado" }
+        cancelar transacción
+        fin registrarCliente
+
+    -- Insertar cliente en la base de datos
+    ID_Cliente = insertarCliente(
+        peticion.didentidad_cliente,
+        peticion.nombre,
+        peticion.apellido,
+        peticion.email,
+        peticion.telefono,
+        peticion.direccion,
+        obtenerFechaActual()
+    )
+
+    confirmar transacción
+    devolver { exito: true, mensaje: "Cliente registrado exitosamente", id_cliente: ID_Cliente }
+fin registrarCliente

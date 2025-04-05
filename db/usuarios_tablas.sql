@@ -37,3 +37,10 @@ GRANT REFERENCES ON usuarios_tablas.mascotas TO citas_tablas;
 
 -- Otorgar permiso REFERENCES para la tabla veterinarios
 GRANT REFERENCES ON usuarios_tablas.veterinarios TO citas_tablas;
+
+-- Tabla de Usuarios
+CREATE TABLE usuarios (
+    id_usuario INT CONSTRAINT pk_usuarios PRIMARY KEY, -- Identificación interna de la base de datos
+    correo VARCHAR2(100) CONSTRAINT uq_usuarios_correo UNIQUE, -- Correo único para el usuario
+    contrasena VARCHAR2(255) -- Contraseña encriptada
+);

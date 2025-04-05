@@ -38,7 +38,8 @@ where username like '%TABLAS';
 
 select owner, object_name, object_type
 from dba_objects
-where owner like '%TABLAS';
+where owner like '%TABLAS'
+order by 1,3;
 
 select *
 from dba_sys_privs
