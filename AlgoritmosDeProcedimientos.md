@@ -1,4 +1,4 @@
-# Seudoalgoritmo propuesto G7
+# Pseudoalgoritmo propuesto G7
 
 Algoritmo para la creación de una cita en la veterinaria Patitas al Rescate.
 Una solicitud de cita en la veterinaria "Patitas al Rescate" requiere recibir el
@@ -69,7 +69,10 @@ Cantidad_Consumida, idCitaServicio
 
 fin agendarCita
 
-## Seudoalgoritmo mejorado
+---
+
+Pseudoalgoritmo mejorado
+
 
 agendarCita(peticion)
     iniciar transacción
@@ -77,6 +80,12 @@ agendarCita(peticion)
     -- Validar cliente
     si no existeCliente(peticion.ID_Cliente)
         devolver { exito: false, mensaje: "El cliente no existe" }
+        cancelar transacción
+        fin agendarCita
+
+    -- Validar si el cliente ya tiene una cita activa
+    si clienteTieneCitaActiva(peticion.ID_Cliente)
+        devolver { exito: false, mensaje: "El cliente ya tiene una cita activa" }
         cancelar transacción
         fin agendarCita
 
@@ -97,6 +106,7 @@ agendarCita(peticion)
         cancelar transacción
         fin agendarCita
 
+    -- Validar disponibilidad del veterinario
     si no veterinarioDisponible(peticion.ID_Veterinario, peticion.Fecha_Cita)
         devolver { exito: false, mensaje: "El veterinario no está disponible en esa fecha y hora" }
         cancelar transacción
@@ -133,15 +143,15 @@ agendarCita(peticion)
         fin si
     fin para
 
-    -- Generar factura (opcional)
-    si peticion.generarFactura
-        total = calcularTotalServicios(ID_Cita)
-        ID_Factura = insertarFactura(ID_Cita, total)
-        vincularFacturaConCita(ID_Cita, ID_Factura)
+    -- Generar factura
+    total = calcularTotalServicios(ID_Cita)
+    ID_Factura = insertarFactura(ID_Cita, total)
+    vincularFacturaConCita(ID_Cita, ID_Factura)
 
     confirmar transacción
-    devolver { exito: true, mensaje: "Cita agendada exitosamente", id_cita: ID_Cita }
+    devolver { exito: true, mensaje: "Cita agendada exitosamente", id_cita: ID_Cita, id_factura: ID_Factura }
 fin agendarCita
+
 
 ---
 
