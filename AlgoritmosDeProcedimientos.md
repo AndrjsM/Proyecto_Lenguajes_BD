@@ -145,8 +145,8 @@ fin agendarCita
 
 ---
 
-registrarCliente(peticion)
 
+registrarCliente(peticion)
     iniciar transacción
 
     -- Validar cédula o documento de identidad
@@ -155,13 +155,22 @@ registrarCliente(peticion)
         cancelar transacción
         fin registrarCliente
 
-    -- Validar correo electrónico
+    -- Validar correo electrónico en la tabla de clientes
     si existeCorreo(peticion.email)
         devolver { exito: false, mensaje: "El correo electrónico ya está registrado" }
         cancelar transacción
         fin registrarCliente
 
-    -- Insertar cliente en la base de datos
+    -- Validar correo electrónico en la tabla de usuarios
+    si existeCorreoUsuario(peticion.email)
+        devolver { exito: false, mensaje: "El correo electrónico ya está registrado en la tabla de usuarios" }
+        cancelar transacción
+        fin registrarCliente
+
+    -- Encriptar la contraseña
+    contrasenaEncriptada = encriptarContrasena(peticion.contrasena)
+
+    -- Insertar cliente en la tabla de clientes
     ID_Cliente = insertarCliente(
         peticion.didentidad_cliente,
         peticion.nombre,
@@ -172,6 +181,13 @@ registrarCliente(peticion)
         obtenerFechaActual()
     )
 
+    -- Insertar usuario en la tabla de usuarios
+    ID_Usuario = insertarUsuario(
+        peticion.email,
+        contrasenaEncriptada
+    )
+
+    -- Confirmar la transacción
     confirmar transacción
-    devolver { exito: true, mensaje: "Cliente registrado exitosamente", id_cliente: ID_Cliente }
+    devolver { exito: true, mensaje: "Cliente registrado exitosamente", id_cliente: ID_Cliente, id_usuario: ID_Usuario }
 fin registrarCliente
