@@ -73,7 +73,6 @@ fin agendarCita
 
 Pseudoalgoritmo mejorado
 
-
 agendarCita(peticion)
     iniciar transacción
 
@@ -83,20 +82,21 @@ agendarCita(peticion)
         cancelar transacción
         fin agendarCita
 
-    -- Validar si el cliente ya tiene una cita activa
-    si clienteTieneCitaActiva(peticion.ID_Cliente)
-        devolver { exito: false, mensaje: "El cliente ya tiene una cita activa" }
-        cancelar transacción
-        fin agendarCita
-
-    -- Validar mascota
+-- Validar mascota
     si no existeMascota(peticion.ID_Mascota)
         devolver { exito: false, mensaje: "La mascota no existe" }
         cancelar transacción
         fin agendarCita
 
-    si no mascotaPerteneceACliente(peticion.ID_Mascota, peticion.ID_Cliente)
+si no mascotaPerteneceACliente(peticion.ID_Mascota, peticion.ID_Cliente)
         devolver { exito: false, mensaje: "La mascota no pertenece al cliente" }
+        cancelar transacción
+        fin agendarCita
+
+    -- Validar si mascota ya tiene una cita activa
+    si mascotaTieneCitaActivaNowMismoServicio(peticion.ID_Mascota)
+	Dentro del rango de duración del servicio esta bloqueado
+        devolver { exito: false, mensaje: "La mascota ya tiene una cita activa a la misma hora" }
         cancelar transacción
         fin agendarCita
 
@@ -108,6 +108,7 @@ agendarCita(peticion)
 
     -- Validar disponibilidad del veterinario
     si no veterinarioDisponible(peticion.ID_Veterinario, peticion.Fecha_Cita)
+	Incluir rango de fechas, si esta entre x hora y y hora rechza -- Cita máximo 2 horas.
         devolver { exito: false, mensaje: "El veterinario no está disponible en esa fecha y hora" }
         cancelar transacción
         fin agendarCita
@@ -133,7 +134,7 @@ agendarCita(peticion)
                     fin agendarCita
 
     si producto.stock < producto.cantidad
-                    devolver { exito: false, mensaje: "No hay suficiente stock del producto con ID " + producto.ID_Producto }
+                    devolver { exito: false, mensaje: "Ups ha ocurrido un error" + producto.ID_Producto }
                     cancelar transacción
                     fin agendarCita
 
@@ -152,9 +153,7 @@ agendarCita(peticion)
     devolver { exito: true, mensaje: "Cita agendada exitosamente", id_cita: ID_Cita, id_factura: ID_Factura }
 fin agendarCita
 
-
 ---
-
 
 registrarCliente(peticion)
     iniciar transacción
