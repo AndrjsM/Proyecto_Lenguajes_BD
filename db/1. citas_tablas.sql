@@ -32,3 +32,19 @@ GRANT INSERT, UPDATE ON citas_tablas.citas_servicios TO progra;
 GRANT INSERT ON citas_tablas.facturas TO progra;
 GRANT REFERENCES ON citas_tablas.citas TO progra;
 GRANT REFERENCES ON citas_tablas.facturas TO progra;
+
+---
+GRANT SELECT ON CITAS_TABLAS.citas TO Progra_PAR;
+GRANT SELECT ON CITAS_TABLAS.citas_servicios TO Progra_PAR;
+GRANT INSERT, UPDATE ON CITAS_TABLAS.citas_servicios TO Progra_PAR;
+GRANT INSERT, UPDATE ON CITAS_TABLAS.facturas TO Progra_PAR;
+
+-- Otorgar permisos REFERENCES para las tablas relacionadas
+GRANT REFERENCES ON CITAS_TABLAS.citas TO Progra_PAR; -- Permite referencias desde otras tablas a citas
+GRANT REFERENCES ON CITAS_TABLAS.citas_servicios TO Progra_PAR; -- Permite referencias desde otras tablas a citas_servicios
+GRANT REFERENCES ON CITAS_TABLAS.facturas TO Progra_PAR; -- Permite referencias desde otras tablas a facturas
+GRANT INSERT ON CITAS_TABLAS.CITAS TO Progra_PAR;
+GRANT REFERENCES ON CITAS_TABLAS.FACTURAS TO Progra_PAR;
+
+ALTER TABLE citas_tablas.citas_servicios
+MODIFY id_cita_servicio GENERATED ALWAYS AS IDENTITY;

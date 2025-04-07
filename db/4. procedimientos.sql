@@ -85,18 +85,20 @@ END;
 /
 
 -- Función para verificar si un servicio requiere productos
-CREATE OR REPLACE FUNCTION servicioRequiereProductos(p_ID_Servicio IN NUMBER) RETURN BOOLEAN IS
-    v_count NUMBER;
+CREATE OR REPLACE FUNCTION servicioRequiereProductos(p_ID_Servicio IN NUMBER) RETURN SYS_REFCURSOR IS
+    v_cursor SYS_REFCURSOR;
 BEGIN
-    SELECT COUNT(*) INTO v_count
-    FROM servicios_tablas.productos
-    WHERE id_producto IN (
-        SELECT id_producto
-        FROM servicios_tablas.servicios_productos
-        WHERE id_servicio = p_ID_Servicio
-    );
+    -- Abrir un cursor para devolver los productos asociados al servicio y sus cantidades
+    OPEN v_cursor FOR
+        SELECT 
+            sp.id_producto, 
+            sp.unidades_producto
+        FROM 
+            servicios_tablas.servicios_productos sp
+        WHERE 
+            sp.id_servicio = p_ID_Servicio;
 
-    RETURN v_count > 0;
+    RETURN v_cursor; -- Retornar el cursor con los resultados
 END;
 /
 
@@ -141,6 +143,64 @@ BEGIN
     RETURNING id_cita_servicio INTO v_ID_Cita_Servicio;
 
     RETURN v_ID_Cita_Servicio;
+END;
+/
+
+CREATE OR REPLACE PROCEDURE actualizarStock(
+    p_ID_Producto IN NUMBER,
+    p_Cantidad IN NUMBER
+) IS
+BEGIN
+    UPDATE servicios_tablas.productos
+    SET stock = stock - p_Cantidad
+    WHERE id_producto = p_ID_Producto;
+
+    IF SQL%ROWCOUNT = 0 THEN
+        RAISE_APPLICATION_ERROR(-20009, 'No se pudo actualizar el stock para el producto con ID ' || p_ID_Producto);
+    END IF;
+END;
+/
+
+CREATE OR REPLACE FUNCTION calcularTotalServicios(
+    p_ID_Cita IN NUMBER
+) RETURN NUMBER IS
+    v_Total NUMBER;
+BEGIN
+    SELECT SUM(s.precio)
+    INTO v_Total
+    FROM citas_tablas.citas_servicios cs
+    JOIN servicios_tablas.servicios s ON cs.id_servicio = s.id_servicio
+    WHERE cs.id_cita = p_ID_Cita;
+
+    RETURN v_Total;
+END;
+/
+
+CREATE OR REPLACE FUNCTION crearFactura(
+    p_Total IN NUMBER
+) RETURN NUMBER IS
+    v_ID_Factura NUMBER;
+BEGIN
+    INSERT INTO citas_tablas.facturas (total, fecha_factura)
+    VALUES (p_Total, SYSDATE)
+    RETURNING id_factura INTO v_ID_Factura;
+
+    RETURN v_ID_Factura;
+END;
+/
+
+CREATE OR REPLACE PROCEDURE asociarFacturaConCita(
+    p_ID_Cita_Servicio IN NUMBER,
+    p_ID_Factura IN NUMBER
+) IS
+BEGIN
+    UPDATE citas_tablas.citas_servicios
+    SET facturas_id_factura = p_ID_Factura
+    WHERE id_cita_servicio = p_ID_Cita_Servicio;
+
+    IF SQL%ROWCOUNT = 0 THEN
+        RAISE_APPLICATION_ERROR(-20010, 'No se pudo asociar la factura con la cita-servicio');
+    END IF;
 END;
 /
 
@@ -197,27 +257,30 @@ BEGIN
 
         v_idCitaServicio := insertarCitaServicio(v_ID_Cita, p_Servicios(i));
 
-        -- Registrar productos si el servicio los requiere
-        IF servicioRequiereProductos(p_Servicios(i)) THEN
-            FOR producto IN (SELECT ID_Producto, cantidad FROM productos WHERE ID_Servicio = p_Servicios(i)) LOOP
-                IF NOT existeProducto(producto.ID_Producto) THEN
-                    RAISE_APPLICATION_ERROR(-20008, 'El producto con ID ' || producto.ID_Producto || ' no existe');
-                END IF;
+        -- Validar y actualizar stock de productos asociados al servicio
+        FOR producto IN (
+            SELECT sp.id_producto, sp.unidades_producto, p.stock
+            FROM servicios_tablas.servicios_productos sp
+            JOIN servicios_tablas.productos p ON sp.id_producto = p.id_producto
+            WHERE sp.id_servicio = p_Servicios(i)
+        ) LOOP
+            IF producto.stock < producto.unidades_producto THEN
+                RAISE_APPLICATION_ERROR(-20008, 'No hay suficiente stock para el producto con ID ' || producto.id_producto);
+            END IF;
 
-                IF producto.stock < producto.cantidad THEN
-                    RAISE_APPLICATION_ERROR(-20009, 'No hay suficiente stock para el producto con ID ' || producto.ID_Producto);
-                END IF;
-
-                insertarServicioProducto(producto.ID_Producto, producto.cantidad, v_idCitaServicio);
-                actualizarStock(producto.ID_Producto, producto.cantidad);
-            END LOOP;
-        END IF;
+            -- Actualizar el stock del producto
+            actualizarStock(producto.id_producto, producto.unidades_producto);
+        END LOOP;
     END LOOP;
 
     -- Generar factura
     v_Total := calcularTotalServicios(v_ID_Cita);
-    v_ID_Factura := insertarFactura(v_ID_Cita, v_Total);
-    vincularFacturaConCita(v_ID_Cita, v_ID_Factura);
+    v_ID_Factura := crearFactura(v_Total);
+
+    -- Asociar factura con los servicios de la cita
+    FOR i IN 1..p_Servicios.COUNT LOOP
+        asociarFacturaConCita(v_idCitaServicio, v_ID_Factura);
+    END LOOP;
 
     COMMIT;
     DBMS_OUTPUT.PUT_LINE('Cita agendada exitosamente. ID_Cita: ' || v_ID_Cita || ', ID_Factura: ' || v_ID_Factura);
@@ -228,6 +291,70 @@ EXCEPTION
 END agendarCita;
 /
 
+-- Funciones necesarias para el registro de clientes
+
+CREATE OR REPLACE FUNCTION existeCedula(p_didentidad_cliente IN VARCHAR2) RETURN BOOLEAN IS
+    v_count NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO v_count
+    FROM usuarios_tablas.clientes
+    WHERE didentidad_cliente = p_didentidad_cliente;
+
+    RETURN v_count > 0;
+END;
+/
+
+CREATE OR REPLACE FUNCTION existeCorreo(p_email IN VARCHAR2) RETURN BOOLEAN IS
+    v_count NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO v_count
+    FROM usuarios_tablas.USUARIOS
+    WHERE correo = p_email;
+
+    RETURN v_count > 0;
+END;
+/
+
+CREATE OR REPLACE FUNCTION insertarCliente(
+    p_didentidad_cliente IN VARCHAR2,
+    p_nombre IN VARCHAR2,
+    p_apellido IN VARCHAR2,
+    p_email IN VARCHAR2,
+    p_telefono IN VARCHAR2,
+    p_direccion IN VARCHAR2,
+    p_fecha_registro IN DATE
+) RETURN NUMBER IS
+    v_ID_Cliente NUMBER;
+BEGIN
+    INSERT INTO usuarios_tablas.clientes (
+        didentidad_cliente, nombre, apellido, email, telefono, direccion, fecha_registro
+    ) VALUES (
+        p_didentidad_cliente, p_nombre, p_apellido, p_email, p_telefono, p_direccion, p_fecha_registro
+    )
+    RETURNING id_cliente INTO v_ID_Cliente;
+
+    RETURN v_ID_Cliente;
+END;
+/
+
+CREATE OR REPLACE FUNCTION insertarUsuario(
+    p_id_cliente IN NUMBER, -- Nuevo parámetro para el ID del cliente
+    p_email IN VARCHAR2,
+    p_contrasena IN VARCHAR2
+) RETURN NUMBER IS
+    v_ID_Usuario NUMBER;
+BEGIN
+    INSERT INTO usuarios_tablas.usuarios (
+        id_cliente, correo, contrasena
+    ) VALUES (
+        p_id_cliente, p_email, p_contrasena
+    )
+    RETURNING id_usuario INTO v_ID_Usuario;
+
+    RETURN v_ID_Usuario;
+END;
+/
+
 -- Procedimiento para registrar un cliente
 CREATE OR REPLACE PROCEDURE registrarCliente(
     p_didentidad_cliente IN VARCHAR2,
@@ -236,11 +363,10 @@ CREATE OR REPLACE PROCEDURE registrarCliente(
     p_email IN VARCHAR2,
     p_telefono IN VARCHAR2,
     p_direccion IN VARCHAR2,
-    p_contrasena IN VARCHAR2
+    p_contrasena IN VARCHAR2,
+    p_ID_Cliente OUT NUMBER -- Nuevo parámetro de salida para devolver el ID del cliente
 ) AS
-    v_ID_Cliente NUMBER;
     v_ID_Usuario NUMBER;
-    v_contrasenaEncriptada VARCHAR2(255);
 BEGIN
     -- Validar cédula o documento de identidad
     IF existeCedula(p_didentidad_cliente) THEN
@@ -252,16 +378,8 @@ BEGIN
         RAISE_APPLICATION_ERROR(-20011, 'El correo electrónico ya está registrado');
     END IF;
 
-    -- Validar correo electrónico en la tabla de usuarios
-    IF existeCorreoUsuario(p_email) THEN
-        RAISE_APPLICATION_ERROR(-20012, 'El correo electrónico ya está registrado en la tabla de usuarios');
-    END IF;
-
-    -- Encriptar la contraseña
-    v_contrasenaEncriptada := encriptarContrasena(p_contrasena);
-
     -- Insertar cliente en la tabla de clientes
-    v_ID_Cliente := insertarCliente(
+    p_ID_Cliente := insertarCliente(
         p_didentidad_cliente,
         p_nombre,
         p_apellido,
@@ -273,12 +391,13 @@ BEGIN
 
     -- Insertar usuario en la tabla de usuarios
     v_ID_Usuario := insertarUsuario(
+        p_ID_Cliente, -- Pasar el ID del cliente
         p_email,
-        v_contrasenaEncriptada
+        p_contrasena
     );
 
     COMMIT;
-    DBMS_OUTPUT.PUT_LINE('Cliente registrado exitosamente. ID_Cliente: ' || v_ID_Cliente || ', ID_Usuario: ' || v_ID_Usuario);
+    DBMS_OUTPUT.PUT_LINE('Cliente registrado exitosamente. ID_Cliente: ' || p_ID_Cliente || ', ID_Usuario: ' || v_ID_Usuario);
 EXCEPTION
     WHEN OTHERS THEN
         ROLLBACK;
@@ -286,6 +405,23 @@ EXCEPTION
 END registrarCliente;
 /
 
-SELECT * 
-FROM USER_TAB_PRIVS 
-WHERE GRANTEE = 'PROGRA';
+-- Datos de prueba
+DECLARE
+    v_ID_Cliente NUMBER; -- Variable para capturar el ID del cliente registrado
+BEGIN
+    -- Registrar un cliente
+    registrarCliente(
+        p_didentidad_cliente => '123456789',
+        p_nombre => 'Fran',
+        p_apellido => 'Rojas',
+        p_email => 'andrjs@outlook.com',
+        p_telefono => '85075310',
+        p_direccion => 'San José, Costa Rica',
+        p_contrasena => 'contrasena123',
+        p_ID_Cliente => v_ID_Cliente -- Capturar el ID del cliente registrado
+    );
+
+    -- Mostrar el ID del cliente registrado
+    DBMS_OUTPUT.PUT_LINE('Cliente registrado con éxito. ID del cliente: ' || v_ID_Cliente);
+END;
+/

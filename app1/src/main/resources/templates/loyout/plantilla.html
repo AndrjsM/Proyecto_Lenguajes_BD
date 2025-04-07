@@ -1,0 +1,103 @@
+<!-- Sección Introductoria -->
+<div th:fragment="intro">
+    <section class="text-white text-center py-5 rounded container"
+        style="background: linear-gradient(to right, #3e80b6, #95d1e9);">
+        <div class="container">
+            <div class="row align-items-center">
+                <!-- Texto -->
+                <div class="col-md-6 text-md-start text-center">
+                    <h1 class="display-4">Bienvenido a Patitas al Rescate</h1>
+                    <p class="lead">Cuidamos de tus mascotas con amor y dedicación.</p>
+                    <a href="/agendar-cita" class="btn btn-success btn-lg mt-3">Agendar Cita</a>
+                </div>
+                <!-- Imagen -->
+                <div class="col-md-6 text-center mt-4 mt-md-0">
+                    <img src="img/perrito.png" alt="Perrito feliz" class="img-fluid rounded" style="max-height: 300px;">
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+
+
+<!-- Sección de Servicios -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <h2 class="text-center mb-4">Nuestros Servicios</h2>
+        <div id="servicesCarousel" class="carousel slide" data-bs-ride="carousel">
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <div class="d-flex justify-content-center">
+                        <div class="card mx-2" style="width: 18rem;">
+                            <img src="/images/servicio1.jpg" class="card-img-top" alt="Baño y Corte">
+                            <div class="card-body">
+                                <h5 class="card-title">Baño y Corte</h5>
+                                <p class="card-text">Mantén a tu mascota limpia y con estilo.</p>
+                            </div>
+                        </div>
+                        <div class="card mx-2" style="width: 18rem;">
+                            <img src="/images/servicio2.jpg" class="card-img-top" alt="Spa para Mascotas">
+                            <div class="card-body">
+                                <h5 class="card-title">Spa para Mascotas</h5>
+                                <p class="card-text">Relajación total para tu mejor amigo.</p>
+                            </div>
+                        </div>
+                        <div class="card mx-2" style="width: 18rem;">
+                            <img src="/images/servicio3.jpg" class="card-img-top" alt="Cuidado de Uñas">
+                            <div class="card-body">
+                                <h5 class="card-title">Cuidado de Uñas</h5>
+                                <p class="card-text">Corte y cuidado profesional de uñas.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Puedes agregar más carousel-item aquí -->
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#servicesCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Anterior</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#servicesCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Siguiente</span>
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- Sección de Veterinarios -->
+<section class="py-5">
+    <div class="container">
+        <h2 class="text-center mb-4">Conoce a Nuestros Veterinarios</h2>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <img src="/images/veterinario1.jpg" class="card-img-top" alt="Veterinario 1">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Dr. Juan Pérez</h5>
+                        <p class="card-text">Especialista en cuidado animal y cirugía.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <img src="/images/veterinario2.jpg" class="card-img-top" alt="Veterinario 2">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Dra. María López</h5>
+                        <p class="card-text">Experta en dermatología y nutrición animal.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <img src="/images/veterinario3.jpg" class="card-img-top" alt="Veterinario 3">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Dr. Carlos Ramírez</h5>
+                        <p class="card-text">Veterinario general con 10 años de experiencia.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

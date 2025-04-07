@@ -49,3 +49,48 @@ CREATE TABLE usuarios (
 -- Otorgar permisos al usuario progra para las tablas de usuarios_tablas
 GRANT INSERT ON usuarios_tablas.clientes TO progra;
 GRANT INSERT ON usuarios_tablas.usuarios TO progra;
+
+GRANT SELECT ON clientes TO Progra_PAR;
+GRANT SELECT ON usuarios TO Progra_PAR;
+GRANT SELECT ON mascotas TO Progra_PAR;
+GRANT SELECT ON veterinarios TO Progra_PAR;
+
+GRANT INSERT, UPDATE ON clientes TO Progra_PAR;
+GRANT INSERT, UPDATE ON usuarios TO Progra_PAR;
+
+-- Otorgar permisos REFERENCES para las tablas relacionadas
+GRANT REFERENCES ON clientes TO Progra_PAR; -- Permite referencias desde otras tablas a clientes
+GRANT REFERENCES ON mascotas TO Progra_PAR; -- Permite referencias desde otras tablas a mascotas
+GRANT REFERENCES ON veterinarios TO Progra_PAR; -- Permite referencias desde otras tablas a veterinarios
+GRANT REFERENCES ON usuarios TO Progra_PAR; -- Permite referencias desde otras tablas a usuarios
+
+GRANT ALTER ON usuarios_tablas.clientes TO Progra_PAR;
+GRANT INSERT ON usuarios_tablas.clientes TO Progra_PAR;
+
+CREATE SEQUENCE seq_id_cliente
+START WITH 1
+INCREMENT BY 1;
+
+CREATE OR REPLACE TRIGGER trg_id_cliente
+BEFORE INSERT ON usuarios_tablas.clientes
+FOR EACH ROW
+BEGIN
+    IF :NEW.id_cliente IS NULL THEN
+        :NEW.id_cliente := seq_id_cliente.NEXTVAL;
+    END IF;
+END;
+/
+
+CREATE SEQUENCE seq_id_usuario
+START WITH 1
+INCREMENT BY 1;
+
+CREATE OR REPLACE TRIGGER trg_id_usuario
+BEFORE INSERT ON usuarios_tablas.usuarios
+FOR EACH ROW
+BEGIN
+    IF :NEW.id_usuario IS NULL THEN
+        :NEW.id_usuario := seq_id_cliente.NEXTVAL;
+    END IF;
+END;
+/
