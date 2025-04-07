@@ -45,3 +45,7 @@ CREATE TABLE usuarios (
     correo VARCHAR2(100) CONSTRAINT uq_usuarios_correo UNIQUE, -- Correo único para el usuario
     contrasena VARCHAR2(255) -- Contraseña encriptada
 );
+
+-- Otorgar permisos al usuario progra para las tablas de usuarios_tablas
+GRANT INSERT ON usuarios_tablas.clientes TO progra;
+GRANT INSERT ON usuarios_tablas.usuarios TO progra;

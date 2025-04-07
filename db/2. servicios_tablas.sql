@@ -27,3 +27,7 @@ CREATE TABLE servicios_productos (
 
 -- Otorgar permiso REFERENCES para la tabla servicios
 GRANT REFERENCES ON servicios_tablas.servicios TO citas_tablas;
+
+-- Otorgar permisos al usuario progra para las tablas de servicios_tablas
+GRANT UPDATE ON servicios_tablas.productos TO progra;
+GRANT REFERENCES ON servicios_tablas.servicios TO progra;

@@ -25,3 +25,10 @@ CREATE TABLE citas_servicios (
 
 -- Otorgar permiso REFERENCES para la tabla servicios
 GRANT REFERENCES ON citas_tablas.citas_servicios TO servicios_tablas;
+
+-- Otorgar permisos al usuario progra para las tablas de citas_tablas
+GRANT INSERT, UPDATE ON citas_tablas.citas TO progra;
+GRANT INSERT, UPDATE ON citas_tablas.citas_servicios TO progra;
+GRANT INSERT ON citas_tablas.facturas TO progra;
+GRANT REFERENCES ON citas_tablas.citas TO progra;
+GRANT REFERENCES ON citas_tablas.facturas TO progra;
