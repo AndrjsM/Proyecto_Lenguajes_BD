@@ -22,82 +22,88 @@
 
 
 <!-- Sección de Servicios -->
-<section class="py-5 bg-light">
-    <div class="container">
-        <h2 class="text-center mb-4">Nuestros Servicios</h2>
-        <div id="servicesCarousel" class="carousel slide" data-bs-ride="carousel">
-            <div class="carousel-inner">
-                <div class="carousel-item active">
-                    <div class="d-flex justify-content-center">
-                        <div class="card mx-2" style="width: 18rem;">
-                            <img src="/images/servicio1.jpg" class="card-img-top" alt="Baño y Corte">
-                            <div class="card-body">
-                                <h5 class="card-title">Baño y Corte</h5>
-                                <p class="card-text">Mantén a tu mascota limpia y con estilo.</p>
+<div th:fragment="servicios">
+    <section class="py-5">
+        <div class="container ">
+            <h2 class="text-center mb-4">Nuestros Servicios</h2>
+            <div id="servicesCarousel" class="carousel slide" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    <div class="carousel-item active">
+                        <div class="d-flex justify-content-center">
+                            <div class="card mx-2" style="width: 18rem;">
+                                <img src="" class="card-img-top" alt="Baño y Corte">
+                                <div class="card-body">
+                                    <h5 class="card-title">Baño y Corte</h5>
+                                    <p class="card-text">Mantén a tu mascota limpia y con estilo.</p>
+                                </div>
                             </div>
-                        </div>
-                        <div class="card mx-2" style="width: 18rem;">
-                            <img src="/images/servicio2.jpg" class="card-img-top" alt="Spa para Mascotas">
-                            <div class="card-body">
-                                <h5 class="card-title">Spa para Mascotas</h5>
-                                <p class="card-text">Relajación total para tu mejor amigo.</p>
+                            <div class="card mx-2" style="width: 18rem;">
+                                <img src="" class="card-img-top" alt="Spa para Mascotas">
+                                <div class="card-body">
+                                    <h5 class="card-title">Spa para Mascotas</h5>
+                                    <p class="card-text">Relajación total para tu mejor amigo.</p>
+                                </div>
                             </div>
-                        </div>
-                        <div class="card mx-2" style="width: 18rem;">
-                            <img src="/images/servicio3.jpg" class="card-img-top" alt="Cuidado de Uñas">
-                            <div class="card-body">
-                                <h5 class="card-title">Cuidado de Uñas</h5>
-                                <p class="card-text">Corte y cuidado profesional de uñas.</p>
+                            <div class="card mx-2" style="width: 18rem;">
+                                <img src="" class="card-img-top" alt="Cuidado de Uñas">
+                                <div class="card-body">
+                                    <h5 class="card-title">Cuidado de Uñas</h5>
+                                    <p class="card-text">Corte y cuidado profesional de uñas.</p>
+                                </div>
                             </div>
                         </div>
                     </div>
+                    <!-- Puedes agregar más carousel-item aquí -->
                 </div>
-                <!-- Puedes agregar más carousel-item aquí -->
+                <button class="carousel-control-prev" type="button" data-bs-target="#servicesCarousel"
+                    data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Anterior</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#servicesCarousel"
+                    data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Siguiente</span>
+                </button>
             </div>
-            <button class="carousel-control-prev" type="button" data-bs-target="#servicesCarousel" data-bs-slide="prev">
-                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">Anterior</span>
-            </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#servicesCarousel" data-bs-slide="next">
-                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-                <span class="visually-hidden">Siguiente</span>
-            </button>
         </div>
-    </div>
-</section>
+    </section>
+</div>
 
 <!-- Sección de Veterinarios -->
-<section class="py-5">
-    <div class="container">
-        <h2 class="text-center mb-4">Conoce a Nuestros Veterinarios</h2>
-        <div class="row">
-            <div class="col-md-4">
-                <div class="card">
-                    <img src="/images/veterinario1.jpg" class="card-img-top" alt="Veterinario 1">
-                    <div class="card-body text-center">
-                        <h5 class="card-title">Dr. Juan Pérez</h5>
-                        <p class="card-text">Especialista en cuidado animal y cirugía.</p>
+<div th:fragment="veterinarios">
+    <section class="py-5">
+        <div class="container">
+            <h2 class="text-center mb-4">Conoce a Nuestros Veterinarios</h2>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card shadow">
+                        <img src="img/veterinario_1.png" class="card-img-top" alt="Veterinario 1">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Dr. Juan Pérez</h5>
+                            <p class="card-text">Especialista en cuidado animal y cirugía.</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card">
-                    <img src="/images/veterinario2.jpg" class="card-img-top" alt="Veterinario 2">
-                    <div class="card-body text-center">
-                        <h5 class="card-title">Dra. María López</h5>
-                        <p class="card-text">Experta en dermatología y nutrición animal.</p>
+                <div class="col-md-4">
+                    <div class="card shadow">
+                        <img src="img/veterinario_1.png" class="card-img-top" alt="Veterinario 2">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Dra. María López</h5>
+                            <p class="card-text">Experta en dermatología y nutrición animal.</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card">
-                    <img src="/images/veterinario3.jpg" class="card-img-top" alt="Veterinario 3">
-                    <div class="card-body text-center">
-                        <h5 class="card-title">Dr. Carlos Ramírez</h5>
-                        <p class="card-text">Veterinario general con 10 años de experiencia.</p>
+                <div class="col-md-4">
+                    <div class="card shadow">
+                        <img src="img/veterinario_1.png" class="card-img-top" alt="Veterinario 3">
+                        <div class="card-body text-center">
+                            <h5 class="card-title">Dr. Carlos Ramírez</h5>
+                            <p class="card-text">Veterinario general con 10 años de experiencia.</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
+</div>
