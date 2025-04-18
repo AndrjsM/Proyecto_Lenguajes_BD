@@ -152,3 +152,19 @@ GRANT SELECT ON servicios_tablas.servicios_productos TO Progra_PAR;
 GRANT SELECT ON servicios_tablas.servicios TO Progra_PAR;
 GRANT SELECT ON servicios_tablas.productos TO Progra_PAR;
 GRANT CREATE TRIGGER TO Progra_PAR;
+
+
+-- Eliminar el usuario Usuarios_Tablas y todos sus objetos
+DROP USER Usuarios_Tablas CASCADE;
+
+-- Eliminar el usuario Citas_Tablas y todos sus objetos
+DROP USER Citas_Tablas CASCADE;
+
+-- Eliminar el usuario Servicios_Tablas y todos sus objetos
+DROP USER Progra CASCADE;
+
+-- Eliminar el usuario Progra_PAR y todos sus objetos
+DROP USER Progra_PAR CASCADE;
+
+-- Eliminar el usuario Progra y todos sus objetos
+DROP USER Progra CASCADE;

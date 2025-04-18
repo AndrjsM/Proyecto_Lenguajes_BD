@@ -94,12 +94,12 @@
         class="container-fluid d-flex align-items-center justify-content-center position-absolute top-50 start-50 translate-middle">
         <div class="form-container bg-white rounded shadow p-4 align-self-center">
             <h2 class="text-center mb-4">Registro de Usuario</h2>
-            <form action="/register" method="post">
+            <form action="/clientes/registrar" method="post" enctype="application/x-www-form-urlencoded">
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group mb-3">
                             <label for="documento" class="form-label">Documento de Identidad</label>
-                            <input type="text" id="documento" name="documento" class="form-control" required>
+                            <input type="text" id="documento" name="didentidadCliente" class="form-control" required>
                         </div>
                         <div class="form-group mb-3">
                             <label for="nombre" class="form-label">Nombre</label>
@@ -107,9 +107,12 @@
                         </div>
                         <div class="form-group mb-3">
                             <label for="correo" class="form-label">Correo Electrónico</label>
-                            <input type="email" id="correo" name="correo" class="form-control" required>
+                            <input type="email" id="correo" name="email" class="form-control" required>
                         </div>
-
+                        <div class="form-group mb-3">
+                            <label for="direccion" class="form-label">Dirección</label>
+                            <input type="text" id="direccion" name="direccion" class="form-control" required>
+                        </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group mb-3">
@@ -122,13 +125,7 @@
                         </div>
                         <div class="form-group mb-3">
                             <label for="password" class="form-label">Contraseña</label>
-                            <input type="password" id="password" name="password" class="form-control" required>
-                        </div>
-                    </div>
-                    <div class="form-group mb-3">
-                        <div class="form-group mb-3">
-                            <label for="floatingTextarea">Dirección</label>
-                            <textarea class="form-control" placeholder="Montes de Oca, San Jose, Costa Rica" id="floatingTextarea"></textarea>
+                            <input type="password" id="password" name="contrasena" class="form-control" required>
                         </div>
                     </div>
                 </div>
