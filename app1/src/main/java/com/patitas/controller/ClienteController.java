@@ -3,9 +3,11 @@ package com.patitas.controller;
 import com.patitas.domain.Cliente;
 import com.patitas.service.ClienteService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-@RestController
+@Controller
 @RequestMapping("/clientes")
 public class ClienteController {
 
@@ -19,15 +21,22 @@ public class ClienteController {
                                    @RequestParam String email,
                                    @RequestParam String telefono,
                                    @RequestParam String direccion,
-                                   @RequestParam String contrasena) {
-        Cliente cliente = new Cliente();
-        cliente.setDidentidadCliente(didentidadCliente);
-        cliente.setNombre(nombre);
-        cliente.setApellido(apellido);
-        cliente.setEmail(email);
-        cliente.setTelefono(telefono);
-        cliente.setDireccion(direccion);
-        Long idCliente = clienteService.registrarCliente(cliente, contrasena);
-        return "Cliente registrado exitosamente con ID: " + idCliente;
+                                   @RequestParam String contrasena,
+                                   RedirectAttributes redirectAttributes) {
+        try {
+            Cliente cliente = new Cliente();
+            cliente.setDidentidadCliente(didentidadCliente);
+            cliente.setNombre(nombre);
+            cliente.setApellido(apellido);
+            cliente.setEmail(email);
+            cliente.setTelefono(telefono);
+            cliente.setDireccion(direccion);
+            clienteService.registrarCliente(cliente, contrasena);
+
+            redirectAttributes.addFlashAttribute("successMessage", "Usuario registrado exitosamente. Por favor, inicie sesión.");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Documento de identidad o correo registrado. Por favor, recupere su usuario y contraseña.");
+        }
+        return "redirect:/login";
     }
 }
