@@ -35,7 +35,7 @@ public class ClienteController {
 
             redirectAttributes.addFlashAttribute("successMessage", "Usuario registrado exitosamente. Por favor, inicie sesión.");
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("errorMessage", "Documento de identidad o correo registrado. Por favor, recupere su usuario y contraseña.");
+            redirectAttributes.addFlashAttribute("errorMessage", "Su documento de indetidad o correo ya se encuentran registrados. Por favor, recupere su usuario y contraseña.");
         }
         return "redirect:/login";
     }
