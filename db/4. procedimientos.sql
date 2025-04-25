@@ -675,7 +675,8 @@ VALUES (10, 41, 1, 1, TO_DATE('2025-04-30', 'YYYY-MM-DD'), '1,2');
 
 commit;
 
+/*
 BEGIN
     SeleccionarPeticionesCitas;
 END;
-/
+/*/
