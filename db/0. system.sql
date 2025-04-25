@@ -165,6 +165,12 @@ GRANT CREATE SEQUENCE TO Citas_Tablas;
 GRANT CREATE TRIGGER TO Servicios_Tablas;
 GRANT CREATE SEQUENCE TO Servicios_Tablas;
 
+GRANT CREATE TRIGGER TO Progra_PAR;
+GRANT CREATE SEQUENCE TO Progra_PAR;
+
+-- Permisos para crear tablas de rechazos y peticiones
+-- Otorgando privilegios de sistema
+grant create session, create table to Progra_PAR;
 
 -- Eliminar el usuario Usuarios_Tablas y todos sus objetos
 DROP USER Usuarios_Tablas CASCADE;

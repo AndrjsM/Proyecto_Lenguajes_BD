@@ -485,6 +485,10 @@ SELECT object_name, status
 FROM user_objects
 WHERE object_name = 'AGENDARCITA';
 
+SELECT object_name, status
+FROM user_objects
+WHERE object_name = 'REGISTRARCLIENTE';
+
 SELECT c.ID_CITA, c.fecha_cita, c.estado, m.nombre AS mascota, v.nombre AS veterinario
 FROM citas_tablas.citas c
 JOIN usuarios_tablas.mascotas m ON c.ID_MASCOTA = m.ID_MASCOTA
@@ -498,3 +502,124 @@ SELECT f.ID_FACTURA, f.TOTAL, f.FECHA_FACTURA,
        END AS ESTADO
 FROM CITAS_TABLAS.FACTURAS f
 WHERE m.ID_CLIENTE = 41;
+
+----
+--Tablas Peticiones y Rechazos
+-- Crear la tabla Peticiones
+CREATE TABLE Peticiones (
+    idPeticion NUMBER PRIMARY KEY, -- Identificador único de la petición
+    idCliente NUMBER, -- ID del cliente que solicita la cita
+    idMascota NUMBER, -- ID de la mascota
+    idVeterinario NUMBER, -- ID del veterinario solicitado
+    fechaCita DATE, -- Fecha solicitada para la cita
+    servicios VARCHAR2(100), -- IDs de los servicios solicitados (separados por comas)
+    estado VARCHAR2(20) DEFAULT 'Pendiente', -- Estado de la petición (Pendiente, Aprobada, Rechazada)
+    motivoRechazo VARCHAR2(255) -- Motivo del rechazo (si aplica)
+);
+
+-- Crear la tabla RechazosCitas
+CREATE TABLE RechazosCitas (
+    idRechazo NUMBER PRIMARY KEY, -- Identificador único del rechazo
+    idPeticion NUMBER, -- ID de la petición rechazada
+    idServicio NUMBER, -- ID del servicio rechazado
+    idProducto NUMBER, -- ID del producto relacionado (si aplica)
+    motivo VARCHAR2(255), -- Motivo del rechazo
+    FOREIGN KEY (idPeticion) REFERENCES Peticiones(idPeticion)
+);
+
+
+CREATE SEQUENCE SEQ_RECHAZOSCITAS START WITH 1 INCREMENT BY 1;
+
+-- Crear el procedimiento SeleccionarPeticionesCitas
+CREATE OR REPLACE PROCEDURE SeleccionarPeticionesCitas AS
+    CURSOR cPeticiones IS
+        SELECT idPeticion, idCliente, idMascota, idVeterinario, fechaCita, servicios
+        FROM Peticiones
+        WHERE estado = 'Pendiente'
+        ORDER BY idPeticion;
+
+    rPeticiones cPeticiones%ROWTYPE;
+    v_ID_Cliente NUMBER;
+    v_ID_Mascota NUMBER;
+    v_ID_Veterinario NUMBER;
+    v_Fecha_Cita DATE;
+    v_Servicios VARCHAR2(100);
+    v_ServicioList SYS.ODCINUMBERLIST;
+    v_MotivoRechazo VARCHAR2(255); -- Variable para almacenar el motivo del rechazo
+BEGIN
+    DBMS_OUTPUT.PUT_LINE('Iniciando procesamiento de peticiones de citas.');
+
+    OPEN cPeticiones;
+    LOOP
+        FETCH cPeticiones INTO rPeticiones;
+        EXIT WHEN cPeticiones%NOTFOUND;
+
+        DBMS_OUTPUT.PUT_LINE('Procesando petición ID: ' || rPeticiones.idPeticion);
+
+        -- Extraer datos de la petición
+        v_ID_Cliente := rPeticiones.idCliente;
+        v_ID_Mascota := rPeticiones.idMascota;
+        v_ID_Veterinario := rPeticiones.idVeterinario;
+        v_Fecha_Cita := rPeticiones.fechaCita;
+        v_Servicios := rPeticiones.servicios;
+
+        -- Convertir la cadena de servicios en una lista
+        BEGIN
+            SELECT CAST(MULTISET(
+                SELECT TO_NUMBER(REGEXP_SUBSTR(v_Servicios, '[^,]+', 1, LEVEL))
+                FROM DUAL
+                CONNECT BY REGEXP_SUBSTR(v_Servicios, '[^,]+', 1, LEVEL) IS NOT NULL
+            ) AS SYS.ODCINUMBERLIST) INTO v_ServicioList FROM DUAL;
+        EXCEPTION
+            WHEN OTHERS THEN
+                DBMS_OUTPUT.PUT_LINE('Error al convertir la lista de servicios: ' || SQLERRM);
+                CONTINUE;
+        END;
+
+        BEGIN
+            -- Intentar agendar la cita
+            agendarCita(
+                p_ID_Cliente => v_ID_Cliente,
+                p_ID_Mascota => v_ID_Mascota,
+                p_ID_Veterinario => v_ID_Veterinario,
+                p_Fecha_Cita => v_Fecha_Cita,
+                p_Servicios => v_Servicios
+            );
+
+            -- Si se agenda correctamente, actualizar el estado de la petición
+            UPDATE Peticiones
+            SET estado = 'Aprobada'
+            WHERE idPeticion = rPeticiones.idPeticion;
+
+            DBMS_OUTPUT.PUT_LINE('Cita agendada exitosamente para la petición ID: ' || rPeticiones.idPeticion);
+        EXCEPTION
+            WHEN OTHERS THEN
+                -- Documentar el rechazo
+                v_MotivoRechazo := SQLERRM; -- Almacenar el motivo del error
+                DBMS_OUTPUT.PUT_LINE('Error al agendar la cita para la petición ID: ' || rPeticiones.idPeticion);
+                DBMS_OUTPUT.PUT_LINE('Motivo: ' || v_MotivoRechazo);
+
+                -- Registrar el rechazo en la tabla RechazosCitas
+                FOR i IN 1..v_ServicioList.COUNT LOOP
+                    INSERT INTO RechazosCitas (
+                        idRechazo, idPeticion, idServicio, motivo
+                    ) VALUES (
+                        SEQ_RECHAZOSCITAS.NEXTVAL, -- Usar la secuencia para generar el ID del rechazo
+                        rPeticiones.idPeticion,
+                        v_ServicioList(i),
+                        v_MotivoRechazo -- Usar la variable en lugar de SQLERRM directamente
+                    );
+                END LOOP;
+
+                -- Actualizar el estado de la petición como rechazada
+                UPDATE Peticiones
+                SET estado = 'Rechazada', motivoRechazo = v_MotivoRechazo
+                WHERE idPeticion = rPeticiones.idPeticion;
+        END;
+    END LOOP;
+
+    CLOSE cPeticiones;
+
+    DBMS_OUTPUT.PUT_LINE('Finalizado procesamiento de peticiones de citas.');
+END;
+/
