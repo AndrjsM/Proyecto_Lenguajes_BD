@@ -527,6 +527,7 @@ CREATE TABLE RechazosCitas (
     FOREIGN KEY (idPeticion) REFERENCES Peticiones(idPeticion)
 );
 
+ALTER TABLE RechazosCitas DROP COLUMN idProducto;
 
 CREATE SEQUENCE SEQ_RECHAZOSCITAS START WITH 1 INCREMENT BY 1;
 
@@ -588,8 +589,10 @@ BEGIN
 
             -- Si se agenda correctamente, actualizar el estado de la petición
             UPDATE Peticiones
-            SET estado = 'Aprobada'
+            SET estado = 'Aprobada', motivoRechazo = NULL
             WHERE idPeticion = rPeticiones.idPeticion;
+
+            COMMIT; -- Confirmar los cambios
 
             DBMS_OUTPUT.PUT_LINE('Cita agendada exitosamente para la petición ID: ' || rPeticiones.idPeticion);
         EXCEPTION
@@ -598,6 +601,12 @@ BEGIN
                 v_MotivoRechazo := SQLERRM; -- Almacenar el motivo del error
                 DBMS_OUTPUT.PUT_LINE('Error al agendar la cita para la petición ID: ' || rPeticiones.idPeticion);
                 DBMS_OUTPUT.PUT_LINE('Motivo: ' || v_MotivoRechazo);
+                -- Actualizar el estado de la petición como rechazada
+                UPDATE Peticiones
+                SET estado = 'Rechazada', motivoRechazo = v_MotivoRechazo
+                WHERE idPeticion = rPeticiones.idPeticion;
+
+                COMMIT; -- Confirmar los cambios
 
                 -- Registrar el rechazo en la tabla RechazosCitas
                 FOR i IN 1..v_ServicioList.COUNT LOOP
@@ -609,12 +618,9 @@ BEGIN
                         v_ServicioList(i),
                         v_MotivoRechazo -- Usar la variable en lugar de SQLERRM directamente
                     );
+                    COMMIT; -- Confirmar los cambios
                 END LOOP;
 
-                -- Actualizar el estado de la petición como rechazada
-                UPDATE Peticiones
-                SET estado = 'Rechazada', motivoRechazo = v_MotivoRechazo
-                WHERE idPeticion = rPeticiones.idPeticion;
         END;
     END LOOP;
 
@@ -675,8 +681,12 @@ VALUES (10, 41, 1, 1, TO_DATE('2025-04-30', 'YYYY-MM-DD'), '1,2');
 
 commit;
 
-/*
+
 BEGIN
     SeleccionarPeticionesCitas;
 END;
-/*/
+/
+
+SELECT object_name, status
+FROM user_objects
+WHERE object_name = 'SELECCIONARPETICIONESCITAS';
