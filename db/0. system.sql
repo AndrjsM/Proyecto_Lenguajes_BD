@@ -171,6 +171,7 @@ GRANT CREATE SEQUENCE TO Progra_PAR;
 -- Permisos para crear tablas de rechazos y peticiones
 -- Otorgando privilegios de sistema
 grant create session, create table to Progra_PAR;
+ALTER USER PROGRA_PAR QUOTA UNLIMITED ON USERS;
 
 -- Eliminar el usuario Usuarios_Tablas y todos sus objetos
 DROP USER Usuarios_Tablas CASCADE;

@@ -623,3 +623,59 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('Finalizado procesamiento de peticiones de citas.');
 END;
 /
+
+
+-- prueba de peticiones:
+-- Correcta: Cliente, mascota, veterinario y servicios válidos
+INSERT INTO Peticiones (idPeticion, idCliente, idMascota, idVeterinario, fechaCita, servicios)
+VALUES (1, 41, 1, 1, TO_DATE('2025-04-30', 'YYYY-MM-DD'), '1,2');
+
+-- Correcta: Cliente, mascota, veterinario y servicios válidos
+INSERT INTO Peticiones (idPeticion, idCliente, idMascota, idVeterinario, fechaCita, servicios)
+VALUES (2, 42, 2, 2, TO_DATE('2025-05-01', 'YYYY-MM-DD'), '3,4');
+
+-- Correcta: Cliente, mascota, veterinario y servicios válidos
+INSERT INTO Peticiones (idPeticion, idCliente, idMascota, idVeterinario, fechaCita, servicios)
+VALUES (3, 43, 3, 3, TO_DATE('2025-05-02', 'YYYY-MM-DD'), '1,4');
+
+-- Rechazada: Cliente no existe
+INSERT INTO Peticiones (idPeticion, idCliente, idMascota, idVeterinario, fechaCita, servicios)
+VALUES (4, 99, 1, 1, TO_DATE('2025-05-03', 'YYYY-MM-DD'), '1,2');
+-- Motivo: Cliente con ID 99 no existe.
+
+-- Rechazada: Mascota no pertenece al cliente
+INSERT INTO Peticiones (idPeticion, idCliente, idMascota, idVeterinario, fechaCita, servicios)
+VALUES (5, 41, 2, 1, TO_DATE('2025-05-04', 'YYYY-MM-DD'), '1,2');
+-- Motivo: Mascota con ID 2 no pertenece al cliente con ID 41.
+
+-- Rechazada: Veterinario no existe
+INSERT INTO Peticiones (idPeticion, idCliente, idMascota, idVeterinario, fechaCita, servicios)
+VALUES (6, 41, 1, 99, TO_DATE('2025-05-05', 'YYYY-MM-DD'), '1,2');
+-- Motivo: Veterinario con ID 99 no existe.
+
+-- Rechazada: Veterinario no está disponible en la fecha
+INSERT INTO Peticiones (idPeticion, idCliente, idMascota, idVeterinario, fechaCita, servicios)
+VALUES (7, 41, 1, 1, TO_DATE('2025-04-30', 'YYYY-MM-DD'), '1,2');
+-- Motivo: Veterinario con ID 1 ya tiene una cita activa en la fecha 2025-04-30.
+
+-- Rechazada: Servicio no existe
+INSERT INTO Peticiones (idPeticion, idCliente, idMascota, idVeterinario, fechaCita, servicios)
+VALUES (8, 41, 1, 1, TO_DATE('2025-05-06', 'YYYY-MM-DD'), '99,100');
+-- Motivo: Servicios con IDs 99 y 100 no existen.
+
+-- Rechazada: Stock insuficiente para un producto asociado al servicio
+INSERT INTO Peticiones (idPeticion, idCliente, idMascota, idVeterinario, fechaCita, servicios)
+VALUES (9, 41, 1, 1, TO_DATE('2025-05-07', 'YYYY-MM-DD'), '1,3');
+-- Motivo: Stock insuficiente para un producto asociado al servicio con ID 1 o 3.
+
+-- Rechazada: Mascota ya tiene una cita activa en la misma fecha
+INSERT INTO Peticiones (idPeticion, idCliente, idMascota, idVeterinario, fechaCita, servicios)
+VALUES (10, 41, 1, 1, TO_DATE('2025-04-30', 'YYYY-MM-DD'), '1,2');
+-- Motivo: Mascota con ID 1 ya tiene una cita activa en la fecha 2025-04-30.
+
+commit;
+
+BEGIN
+    SeleccionarPeticionesCitas;
+END;
+/
