@@ -113,3 +113,47 @@ ORDER BY
 GRANT SELECT ON servicios_tablas.servicios TO Progra_PAR;
 GRANT SELECT ON servicios_tablas.servicios_productos TO Progra_PAR;
 GRANT SELECT ON servicios_tablas.productos TO Progra_PAR;
+
+-- /24/04/25
+
+CREATE SEQUENCE seq_id_servicio
+START WITH 1
+INCREMENT BY 1;
+
+CREATE OR REPLACE TRIGGER trg_id_servicio
+BEFORE INSERT ON servicios_tablas.servicios
+FOR EACH ROW
+BEGIN
+    IF :NEW.id_servicio IS NULL THEN
+        :NEW.id_servicio := seq_id_servicio.NEXTVAL;
+    END IF;
+END;
+/
+
+CREATE SEQUENCE seq_id_producto
+START WITH 1
+INCREMENT BY 1;
+
+CREATE OR REPLACE TRIGGER trg_id_producto
+BEFORE INSERT ON servicios_tablas.productos
+FOR EACH ROW
+BEGIN
+    IF :NEW.id_producto IS NULL THEN
+        :NEW.id_producto := seq_id_producto.NEXTVAL;
+    END IF;
+END;
+/
+
+CREATE SEQUENCE seq_id_producto_servicio
+START WITH 1
+INCREMENT BY 1;
+
+CREATE OR REPLACE TRIGGER trg_id_producto_servicio
+BEFORE INSERT ON servicios_tablas.servicios_productos
+FOR EACH ROW
+BEGIN
+    IF :NEW.id_producto_servicio IS NULL THEN
+        :NEW.id_producto_servicio := seq_id_producto_servicio.NEXTVAL;
+    END IF;
+END;
+/

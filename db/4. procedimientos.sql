@@ -35,12 +35,14 @@ END;
 /
 
 -- Función para verificar si una mascota tiene una cita activa
-CREATE OR REPLACE FUNCTION mascotaTieneCitaActivaNowMismoServicio(p_ID_Mascota IN NUMBER) RETURN BOOLEAN IS
+CREATE OR REPLACE FUNCTION mascotaTieneCitaActivaNowMismoServicio(p_ID_Mascota IN NUMBER, p_Fecha_Cita IN DATE) RETURN BOOLEAN IS
     v_count NUMBER;
 BEGIN
     SELECT COUNT(*) INTO v_count
     FROM citas_tablas.citas
-    WHERE id_mascota = p_ID_Mascota AND estado = 'Activa';
+    WHERE id_mascota = p_ID_Mascota 
+      AND TRUNC(fecha_cita) = TRUNC(p_Fecha_Cita) -- Validar misma fecha
+      AND estado = 'Activa';
 
     RETURN v_count > 0;
 END;
@@ -204,19 +206,27 @@ BEGIN
 END;
 /
 
--- Procedimiento para agendar una cita
+-- Procedimiento para agendar una cita cambio hoy 24/04/25
 CREATE OR REPLACE PROCEDURE agendarCita(
     p_ID_Cliente IN NUMBER,
     p_ID_Mascota IN NUMBER,
     p_ID_Veterinario IN NUMBER,
     p_Fecha_Cita IN DATE,
-    p_Servicios IN SYS.ODCINUMBERLIST -- Lista de IDs de servicios
+    p_Servicios IN VARCHAR2 -- Cambiado a cadena separada por comas
 ) AS
     v_ID_Cita NUMBER;
     v_ID_Factura NUMBER;
     v_idCitaServicio NUMBER;
     v_Total NUMBER;
+    v_Servicios SYS.ODCINUMBERLIST;
 BEGIN
+    -- Convertir la cadena separada por comas en una colección
+    SELECT CAST(MULTISET(
+        SELECT TO_NUMBER(REGEXP_SUBSTR(p_Servicios, '[^,]+', 1, LEVEL))
+        FROM DUAL
+        CONNECT BY REGEXP_SUBSTR(p_Servicios, '[^,]+', 1, LEVEL) IS NOT NULL
+    ) AS SYS.ODCINUMBERLIST) INTO v_Servicios FROM DUAL;
+
     -- Validar cliente
     IF NOT existeCliente(p_ID_Cliente) THEN
         RAISE_APPLICATION_ERROR(-20001, 'El cliente no existe');
@@ -232,7 +242,7 @@ BEGIN
     END IF;
 
     -- Validar si la mascota ya tiene una cita activa
-    IF mascotaTieneCitaActivaNowMismoServicio(p_ID_Mascota) THEN
+    IF mascotaTieneCitaActivaNowMismoServicio(p_ID_Mascota, p_Fecha_Cita) THEN
         RAISE_APPLICATION_ERROR(-20004, 'La mascota ya tiene una cita activa a la misma hora');
     END IF;
 
@@ -250,19 +260,19 @@ BEGIN
     v_ID_Cita := insertarCita(p_ID_Mascota, p_ID_Veterinario, p_Fecha_Cita, 'Activa');
 
     -- Registrar servicios
-    FOR i IN 1..p_Servicios.COUNT LOOP
-        IF NOT existeServicio(p_Servicios(i)) THEN
+    FOR i IN 1..v_Servicios.COUNT LOOP
+        IF NOT existeServicio(v_Servicios(i)) THEN
             RAISE_APPLICATION_ERROR(-20007, 'El servicio solicitado no es válido');
         END IF;
 
-        v_idCitaServicio := insertarCitaServicio(v_ID_Cita, p_Servicios(i));
+        v_idCitaServicio := insertarCitaServicio(v_ID_Cita, v_Servicios(i));
 
         -- Validar y actualizar stock de productos asociados al servicio
         FOR producto IN (
             SELECT sp.id_producto, sp.unidades_producto, p.stock
             FROM servicios_tablas.servicios_productos sp
             JOIN servicios_tablas.productos p ON sp.id_producto = p.id_producto
-            WHERE sp.id_servicio = p_Servicios(i)
+            WHERE sp.id_servicio = v_Servicios(i)
         ) LOOP
             IF producto.stock < producto.unidades_producto THEN
                 RAISE_APPLICATION_ERROR(-20008, 'No hay suficiente stock para el producto con ID ' || producto.id_producto);
@@ -278,8 +288,10 @@ BEGIN
     v_ID_Factura := crearFactura(v_Total);
 
     -- Asociar factura con los servicios de la cita
-    FOR i IN 1..p_Servicios.COUNT LOOP
-        asociarFacturaConCita(v_idCitaServicio, v_ID_Factura);
+    FOR i IN 1..v_Servicios.COUNT LOOP
+        UPDATE citas_tablas.citas_servicios
+        SET facturas_id_factura = v_ID_Factura
+        WHERE id_cita = v_ID_Cita AND id_servicio = v_Servicios(i);
     END LOOP;
 
     COMMIT;
@@ -425,3 +437,64 @@ BEGIN
     DBMS_OUTPUT.PUT_LINE('Cliente registrado con éxito. ID del cliente: ' || v_ID_Cliente);
 END;
 /
+-- Datos de prueba
+DECLARE
+    v_ID_Cliente NUMBER; -- Variable para capturar el ID del cliente registrado
+BEGIN
+    -- Registrar un cliente
+    registrarCliente(
+        p_didentidad_cliente => '123456789',
+        p_nombre => 'Fran',
+        p_apellido => 'Rojas',
+        p_email => 'andrjs@outlook.com',
+        p_telefono => '85075310',
+        p_direccion => 'San José, Costa Rica',
+        p_contrasena => 'contrasena123',
+        p_ID_Cliente => v_ID_Cliente -- Capturar el ID del cliente registrado
+    );
+
+    -- Mostrar el ID del cliente registrado
+    DBMS_OUTPUT.PUT_LINE('Cliente registrado con éxito. ID del cliente: ' || v_ID_Cliente);
+END;
+/
+
+--24/04/2025
+-- Datos de prueba
+DECLARE
+    v_ID_Cliente NUMBER := 41; -- Reemplaza con el ID del cliente
+    v_ID_Mascota NUMBER := 1; -- Reemplaza con el ID de la mascota
+    v_ID_Veterinario NUMBER := 1; -- Reemplaza con el ID del veterinario
+    v_Fecha_Cita DATE := TO_DATE('2025-04-30', 'YYYY-MM-DD'); -- Reemplaza con la fecha deseada
+    v_Servicios VARCHAR2(100) := '3,4'; -- Reemplaza con los IDs de los servicios separados por comas
+BEGIN
+    -- Llamar al procedimiento para agendar la cita
+    agendarCita(
+        p_ID_Cliente => v_ID_Cliente,
+        p_ID_Mascota => v_ID_Mascota,
+        p_ID_Veterinario => v_ID_Veterinario,
+        p_Fecha_Cita => v_Fecha_Cita,
+        p_Servicios => v_Servicios
+    );
+
+    DBMS_OUTPUT.PUT_LINE('Cita agendada exitosamente.');
+END;
+/
+commit;
+
+SELECT object_name, status
+FROM user_objects
+WHERE object_name = 'AGENDARCITA';
+
+SELECT c.ID_CITA, c.fecha_cita, c.estado, m.nombre AS mascota, v.nombre AS veterinario
+FROM citas_tablas.citas c
+JOIN usuarios_tablas.mascotas m ON c.ID_MASCOTA = m.ID_MASCOTA
+JOIN usuarios_tablas.veterinarios v ON c.id_veterinario = v.id_veterinario
+WHERE m.id_cliente = 41;
+
+SELECT f.ID_FACTURA, f.TOTAL, f.FECHA_FACTURA, 
+       CASE 
+           WHEN c.FECHA_CITA < SYSDATE THEN 'Pagada'
+           ELSE 'Pendiente'
+       END AS ESTADO
+FROM CITAS_TABLAS.FACTURAS f
+WHERE m.ID_CLIENTE = 41;

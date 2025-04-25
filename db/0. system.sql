@@ -153,6 +153,18 @@ GRANT SELECT ON servicios_tablas.servicios TO Progra_PAR;
 GRANT SELECT ON servicios_tablas.productos TO Progra_PAR;
 GRANT CREATE TRIGGER TO Progra_PAR;
 
+-- /24/04/25
+GRANT CREATE TRIGGER TO Usuarios_Tablas;
+GRANT CREATE SEQUENCE TO Usuarios_Tablas;
+
+-- /24/04/25
+GRANT CREATE TRIGGER TO Citas_Tablas;
+GRANT CREATE SEQUENCE TO Citas_Tablas;
+
+-- /24/04/25
+GRANT CREATE TRIGGER TO Servicios_Tablas;
+GRANT CREATE SEQUENCE TO Servicios_Tablas;
+
 
 -- Eliminar el usuario Usuarios_Tablas y todos sus objetos
 DROP USER Usuarios_Tablas CASCADE;

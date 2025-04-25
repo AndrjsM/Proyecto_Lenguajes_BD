@@ -48,3 +48,46 @@ GRANT REFERENCES ON CITAS_TABLAS.FACTURAS TO Progra_PAR;
 
 ALTER TABLE citas_tablas.citas_servicios
 MODIFY id_cita_servicio GENERATED ALWAYS AS IDENTITY;
+
+--24/04/2025
+CREATE SEQUENCE seq_id_cita
+START WITH 1
+INCREMENT BY 1;
+
+CREATE OR REPLACE TRIGGER trg_id_cita
+BEFORE INSERT ON citas_tablas.citas
+FOR EACH ROW
+BEGIN
+    IF :NEW.id_cita IS NULL THEN
+        :NEW.id_cita := seq_id_cita.NEXTVAL;
+    END IF;
+END;
+/
+
+CREATE SEQUENCE seq_id_factura
+START WITH 1
+INCREMENT BY 1;
+
+CREATE OR REPLACE TRIGGER trg_id_factura
+BEFORE INSERT ON citas_tablas.facturas
+FOR EACH ROW
+BEGIN
+    IF :NEW.id_factura IS NULL THEN
+        :NEW.id_factura := seq_id_factura.NEXTVAL;
+    END IF;
+END;
+/
+
+CREATE SEQUENCE seq_id_cita_servicio
+START WITH 1
+INCREMENT BY 1;
+
+CREATE OR REPLACE TRIGGER trg_id_cita_servicio
+BEFORE INSERT ON citas_tablas.citas_servicios
+FOR EACH ROW
+BEGIN
+    IF :NEW.id_cita_servicio IS NULL THEN
+        :NEW.id_cita_servicio := seq_id_cita_servicio.NEXTVAL;
+    END IF;
+END;
+/

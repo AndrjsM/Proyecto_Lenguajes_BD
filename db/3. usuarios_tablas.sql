@@ -94,3 +94,37 @@ BEGIN
     END IF;
 END;
 /
+
+-- 21/04/2025
+
+-- Inserción de veterinarios estéticos
+INSERT INTO veterinarios (id_veterinario, didentidad_veterinario, nombre, especialidad, telefono, correo, rol)
+VALUES (1, 'VET123456789', 'Dr. Juan Pérez', 'Estética Canina', '88881234', 'juan.perez@veterinaria.com', 'Estético');
+
+INSERT INTO veterinarios (id_veterinario, didentidad_veterinario, nombre, especialidad, telefono, correo, rol)
+VALUES (2, 'VET987654321', 'Dra. María López', 'Estética Felina', '88885678', 'maria.lopez@veterinaria.com', 'Estético');
+
+INSERT INTO veterinarios (id_veterinario, didentidad_veterinario, nombre, especialidad, telefono, correo, rol)
+VALUES (3, 'VET456789123', 'Dr. Carlos Ramírez', 'Estética General', '88889012', 'carlos.ramirez@veterinaria.com', 'Estético');
+
+INSERT INTO MASCOTAS (
+    ID_MASCOTA, ID_CLIENTE, NOMBRE, ESPECIE, RAZA, MESES, HISTORIAL_MEDICA
+) VALUES (
+    1, 41, 'Max', 'Perro', 'Golden Retriever', 24, EMPTY_CLOB()
+);
+
+commit;
+
+CREATE SEQUENCE seq_id_veterinario
+START WITH 1
+INCREMENT BY 1;
+
+CREATE OR REPLACE TRIGGER trg_id_veterinario
+BEFORE INSERT ON usuarios_tablas.veterinarios
+FOR EACH ROW
+BEGIN
+    IF :NEW.id_veterinario IS NULL THEN
+        :NEW.id_veterinario := seq_id_veterinario.NEXTVAL;
+    END IF;
+END;
+/
